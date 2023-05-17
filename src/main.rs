@@ -5,11 +5,10 @@ use std::collections::HashMap;
 
 const HELP: &str = 
 "USAGE:
-    tcg <name> -l <language_extension> --i %.in -o %.out
+    tcg <name> -l <language_extension> -i %.in -o %.out
 FLAGS:
     -h, --help          Print the help screen
 OPTIONS:
-    -l, --language      The language extension of your problem solution
     -i, --input         The input file of the problem solution (use % to format with problem name)
     -o, --output        The output file of your problem solution (use % to format with problem name)
     -t, --template      Choose a custom template to use for your problem solution
@@ -17,8 +16,10 @@ OPTIONS:
 
 fn main() {
     let problem_name = env::args().nth(1)
-        .expect("Failed to read problem name")
-        .to_string();
+                        .unwrap_or_else(|| {
+                            eprintln!("Problem name not provided");
+                            std::process::exit(1);
+                        });
 
     match problem_name{
         ref s if s.starts_with("-h") | s.starts_with("--help") => {
@@ -45,12 +46,18 @@ fn main() {
             "-t" | "--template" => {
                 if let Some(arg_config) = args.next() {
                     let template_name: Vec<&str> = arg_config.split(".").collect();
+
+                    if template_name.len() != 2 {
+                        eprintln!("Invalid template format");
+                        std::process::exit(1);
+                    }
+
                     let language_extension = &template_name[1].to_string();
 
                     let template_file = fs::read_to_string(format!("templates/{}",arg_config))
                                             .unwrap_or_else(|err| {
-                                                handle_error(err.to_string());
-                                                String::new()
+                                                println!("{}", err);
+                                                std::process::exit(1)
                                             });
                     
                     options.insert("template_file".to_string(), template_file);
@@ -100,8 +107,8 @@ fn main() {
 
     fs::create_dir(&problem_name)
             .unwrap_or_else(|err| {
-                handle_error(err.to_string());
-                String::new();
+                println!("{}", err);
+                std::process::exit(1)
             });
 
     File::create(options.get("input_file").unwrap()).expect("Couldn't create input file");
@@ -112,9 +119,4 @@ fn main() {
                             .replace("%output%", options.get("output").unwrap());
 
     fs::write(options.get("problem_file").unwrap(), file_content).expect("Unable to write problem file");
-}
-
-fn handle_error(message: String) {
-    println!("{}", message);
-    std::process::exit(1);
 }
