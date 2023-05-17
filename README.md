@@ -30,7 +30,6 @@ tcg <name> -t <template> -i <input> -o <output>
 ```
 
 -   `<name>`: The name of the problem. This will be used to create a directory with the same name to store the problem files.
--   `-l, --language`: The language extension of your problem solution.
 -   `-i, --input`: The input file of the problem solution. You can use `%` as a placeholder to be replaced with the problem name.
 -   `-o, --output`: The output file of your problem solution. You can use `%` as a placeholder to be replaced with the problem name.
 -   `-h, --help`: Print the help screen, which displays the program's usage and available options.
