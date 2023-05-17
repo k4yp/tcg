@@ -1,0 +1,3 @@
+case = input()
+
+print(case)

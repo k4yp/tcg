@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "cpgen"
-version = "0.1.0"
+name = "tcg"
+version = "0.1.1"

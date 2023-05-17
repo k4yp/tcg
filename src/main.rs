@@ -5,46 +5,63 @@ use std::collections::HashMap;
 
 const HELP: &str = 
 "USAGE:
-    gen <name> -l <language_extension> --i %.in -o %.out
+    tcg <name> -l <language_extension> --i %.in -o %.out
 FLAGS:
     -h, --help          Print the help screen
 OPTIONS:
     -l, --language      The language extension of your problem solution
     -i, --input         The input file of the problem solution (use % to format with problem name)
     -o, --output        The output file of your problem solution (use % to format with problem name)
+    -t, --template      Choose a custom template to use for your problem solution
 ";
-
-const PY: &str =
-r#"with open("%in%","r") as f:
-    data = f.read()
-
-with open("%out%","w") as f:
-     f.write(data)"#;
 
 fn main() {
     let problem_name = env::args().nth(1)
         .expect("Failed to read problem name")
         .to_string();
 
-    if problem_name.starts_with("-") {
-        panic!("Problem name cannot be empty");
+    match problem_name{
+        ref s if s.starts_with("-h") | s.starts_with("--help") => {
+            println!("{}", HELP);
+            std::process::exit(1);
+        }
+        ref s if s.starts_with("-") => {
+            println!("Problem name cannot be empty");
+            std::process::exit(1);
+        }
+        _ => {}
     }
-
-    let mut args = env::args().skip(2);
 
     let mut options = HashMap::new();
 
+    let mut args = env::args().skip(2);
+
     while let Some(arg) = args.next() {
         match &arg[..] {
-            "-h" | "--help" => println!("{}", HELP),
-            "-l" | "--language" => {
+            "-h" | "--help" => {
+                println!("{}", HELP); 
+                std::process::exit(1)
+            }
+            "-t" | "--template" => {
                 if let Some(arg_config) = args.next() {
-                    let language_extension = &arg_config.to_string();
+                    let template_name: Vec<&str> = arg_config.split(".").collect();
+                    let language_extension = &template_name[1].to_string();
+
+                    let template_file = fs::read_to_string(format!("templates/{}",arg_config))
+                                            .unwrap_or_else(|err| {
+                                                handle_error(err.to_string());
+                                                String::new()
+                                            });
+                    
+                    options.insert("template_file".to_string(), template_file);
+
                     let problem_file = format!("{}/{}.{}", problem_name, problem_name, language_extension);
 
                     options.insert("problem_file".to_string(), problem_file.clone());
+
                 } else {
-                    panic!("No value specified for parameter --language.");
+                    println!("No value specified for parameter --template.");
+                    std::process::exit(1);
                 }
             }
             "-i" | "--input" => {
@@ -55,7 +72,8 @@ fn main() {
                     options.insert("input".to_string(), input.clone());
                     options.insert("input_file".to_string(), input_file);
                 } else {
-                    panic!("No value specified for parameter --input.");
+                    println!("No value specified for parameter --input.");
+                    std::process::exit(1);
                 }
             }
             "-o" | "--output" => {
@@ -66,7 +84,8 @@ fn main() {
                     options.insert("output".to_string(), output.clone());
                     options.insert("output_file".to_string(), output_file);
                 } else {
-                    panic!("No value specified for parameter --output.");
+                    println!("No value specified for parameter --output.");
+                    std::process::exit(1);
                 }
             }
             _ => {
@@ -79,14 +98,23 @@ fn main() {
         }
     }
 
-    fs::create_dir(&problem_name).expect("Couldn't create directory");
+    fs::create_dir(&problem_name)
+            .unwrap_or_else(|err| {
+                handle_error(err.to_string());
+                String::new();
+            });
 
-    File::create(options.get("input_file").unwrap()).expect("Couldn't create output file");
+    File::create(options.get("input_file").unwrap()).expect("Couldn't create input file");
     File::create(options.get("output_file").unwrap()).expect("Couldn't create output file");
 
-    let file_content = PY
-                        .replace("%in%", options.get("input").unwrap())
-                        .replace("%out%", options.get("output").unwrap());
+    let file_content = options.get("template_file").unwrap()
+                            .replace("%input%", options.get("input").unwrap())
+                            .replace("%output%", options.get("output").unwrap());
 
-    fs::write(options.get("problem_file").unwrap(), file_content).expect("Unable to write file");
+    fs::write(options.get("problem_file").unwrap(), file_content).expect("Unable to write problem file");
+}
+
+fn handle_error(message: String) {
+    println!("{}", message);
+    std::process::exit(1);
 }
