@@ -4,7 +4,7 @@ version = "0.1.2"
 edition = "2021"
 description = "Competitive Programming Template Code Generator"
 license = "MIT"
-repository "https://github.com/k4yp/tcg"
+repository = "https://github.com/k4yp/tcg"
 documentation = "https://docs.rs/crate/tcg/latest"
 homepage = "https://github.com/k4yp/tcg"
 
