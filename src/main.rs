@@ -5,7 +5,7 @@ use std::collections::HashMap;
 
 const HELP: &str = 
 "USAGE:
-    tcg <name> -l <language_extension> -i %.in -o %.out
+    tcg <name> -t <template> -i <input> -o <output>
 FLAGS:
     -h, --help          Print the help screen
 OPTIONS:
