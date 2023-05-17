@@ -1,5 +1,3 @@
-![TCG](tcg.svg)
-
 # Template Code Generator
 
 ![](https://img.shields.io/crates/d/tcg)
