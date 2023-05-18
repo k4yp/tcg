@@ -1,7 +1,10 @@
 use std::env;
 use std::fs;
 use std::fs::File;
+use std::path::Path;
 use std::collections::HashMap;
+
+extern crate dirs;
 
 const HELP: &str = 
 "USAGE:
@@ -15,18 +18,38 @@ OPTIONS:
 ";
 
 fn main() {
+    let config_path_temp = dirs::config_dir().unwrap_or_default().to_string_lossy().to_string();
+    let config_path = format!("{}/tcg",config_path_temp);
+    let template_path = format!("{}/templates",config_path);
+
+    let path_status = Path::new(&config_path).is_dir();
+
+    if path_status == false {
+        fs::create_dir(&config_path)
+                .unwrap_or_else(|err| {
+                    println!("{}", err);
+                    std::process::exit(1)
+                });
+                
+        fs::create_dir(&template_path)
+                .unwrap_or_else(|err| {
+                    println!("{}", err);
+                    std::process::exit(1)
+                });
+    }
+
     let problem_name = env::args().nth(1)
                         .unwrap_or_else(|| {
                             eprintln!("Problem name not provided");
                             std::process::exit(1);
                         });
 
-    match problem_name{
-        ref s if s.starts_with("-h") | s.starts_with("--help") => {
+    match problem_name {
+        ref name if name.starts_with("-h") | name.starts_with("--help") => {
             println!("{}", HELP);
-            std::process::exit(1);
+            std::process::exit(0);
         }
-        ref s if s.starts_with("-") => {
+        ref name if name.starts_with("-") => {
             println!("Problem name cannot be empty");
             std::process::exit(1);
         }
@@ -41,7 +64,7 @@ fn main() {
         match &arg[..] {
             "-h" | "--help" => {
                 println!("{}", HELP); 
-                std::process::exit(1)
+                std::process::exit(0)
             }
             "-t" | "--template" => {
                 if let Some(arg_config) = args.next() {
@@ -54,7 +77,7 @@ fn main() {
 
                     let language_extension = &template_name[1].to_string();
 
-                    let template_file = fs::read_to_string(format!("templates/{}",arg_config))
+                    let template_file = fs::read_to_string(format!("{}/templates/{}", config_path, arg_config))
                                             .unwrap_or_else(|err| {
                                                 println!("{}", err);
                                                 std::process::exit(1)

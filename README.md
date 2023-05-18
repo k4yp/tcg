@@ -44,7 +44,7 @@ This command will create a directory named "example" and generate the necessary 
 
 ## Templates
 
-List of the default template files. All of these are customizable. Use `%input%` and `%output%` as placeholders for input and output files.
+All template files are customizable. Use `%input%` and `%output%` as placeholders for input and output files. It will search for these template files in the `.config/tcg/templates` directory if you are on linux. Here are some examples
 
 **Python**  
 io.py
