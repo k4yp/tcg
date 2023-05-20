@@ -1,6 +1,6 @@
 [package]
 name = "tcg"
-version = "0.1.5"
+version = "0.1.6"
 edition = "2021"
 description = "Competitive Programming Template Code Generator"
 license = "MIT"
